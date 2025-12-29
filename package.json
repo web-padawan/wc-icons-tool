@@ -1,6 +1,6 @@
 {
   "name": "@web-padawan/wc-icons-tool",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "main": "./bin/wc-icons-tool",
   "bin": {
     "wc-icons-tool": "./bin/wc-icons-tool"
