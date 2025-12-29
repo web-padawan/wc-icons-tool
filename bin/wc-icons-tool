@@ -1,9 +1,10 @@
 #!/usr/bin/env node
 import { generateIcons } from '../tasks/icons.js';
-import { generateLumoFont } from '../tasks/lumo.js';
+import { generateLumoFont, generateLumoIconset } from '../tasks/lumo.js';
 
 async function main() {
   await generateIcons();
+  await generateLumoIconset();
   await generateLumoFont();
 }
 

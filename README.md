@@ -7,5 +7,5 @@ CLI tool for the [Vaadin web components](https://github.com/vaadin/web-component
 Create iconset for `packages/icons` and `packages/vaadin-lumo-styles`:
 
 ```sh
-npx wc-icons-tool
+npx @web-padawan/wc-icons-tool
 ```

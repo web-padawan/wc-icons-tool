@@ -1,9 +1,11 @@
 import { execSync } from 'node:child_process';
-import path from 'node:path';
+import { basename, normalize } from 'node:path';
 import { readFileSync, unlinkSync, writeFileSync } from 'node:fs';
 import { dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { globSync } from 'glob';
 import * as cheerio from 'cheerio';
+import svgpath from 'svgpath';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -15,11 +17,81 @@ function createCopyright() {
  */`;
 }
 
+/**
+ * Normalize file sort order across platforms (OS X vs Linux, maybe others).
+ *
+ * Before: `[..., 'eye-disabled', 'eye', ...]`
+ * After:  `[..., 'eye', 'eye-disabled', ...]`
+ *
+ * Order of appearance impacts assigned Unicode codepoints, and sometimes build diffs.
+ *
+ * @see https://github.com/nfroidure/svgicons2svgfont/pull/82
+ * @see https://github.com/nfroidure/svgicons2svgfont/blob/master/src/filesorter.js
+ * @see http://support.ecisolutions.com/doc-ddms/help/reportsmenu/ascii_sort_order_chart.htm
+ */
+function sortIconFilesNormalized(file1, file2) {
+  return file1
+    .replace(/-/gu, '~')
+    .localeCompare(file2.replace(/-/gu, '~'), 'en-US');
+}
+
+function createIconset() {
+  const filenames = globSync(
+    `${process.cwd()}/packages/vaadin-lumo-styles/icons/svg/*.svg`
+  );
+
+  filenames.sort(sortIconFilesNormalized);
+
+  let output = `<svg xmlns="http://www.w3.org/2000/svg"><defs>\n`;
+  filenames.forEach((file) => {
+    const content = readFileSync(file, 'utf-8');
+    const path = content.match(
+      /<path( fill-rule="evenodd" clip-rule="evenodd")* d="([^"]*)"/u
+    );
+    const filename = basename(file);
+    if (path) {
+      const newPath = new svgpath(path[2])
+        .scale(1000 / 24, 1000 / 24)
+        .round(0)
+        .toString();
+      const name = filename
+        .replace('.svg', '')
+        .replace(/\s/gu, '-')
+        .toLowerCase();
+      const attrs = path[1] !== undefined ? path[1] : '';
+      output += `<g id="lumo:${name}"><path d="${newPath}"${attrs}></path></g>\n`;
+    } else {
+      throw new Error(`Unexpected SVG content: ${filename}`);
+    }
+  });
+
+  output += `</defs></svg>`;
+  return output;
+}
+
+export function generateLumoIconset() {
+  const iconset = `${createCopyright()}
+import './version.js';
+import { Iconset } from '@vaadin/icon/vaadin-iconset.js';
+
+const template = document.createElement('template');
+
+template.innerHTML = \`${createIconset()}\`;
+
+Iconset.register('lumo', 1000, template);\n`;
+
+  writeFileSync(
+    `${process.cwd()}/packages/vaadin-lumo-styles/vaadin-iconset.js`,
+    iconset,
+    'utf-8'
+  );
+}
+
 export function generateLumoFont() {
   const FONT = `${process.cwd()}/packages/vaadin-lumo-styles/lumo-icons`;
 
   // Create SVG font
-  const svgIcons2Font = path.normalize(
+  const svgIcons2Font = normalize(
     `${__dirname}/../node_modules/.bin/svgicons2svgfont`
   );
   execSync(
@@ -27,11 +99,11 @@ export function generateLumoFont() {
   );
 
   // Convert SVG to TTF
-  const svg2TTF = path.normalize(`${__dirname}/../node_modules/.bin/svg2ttf`);
+  const svg2TTF = normalize(`${__dirname}/../node_modules/.bin/svg2ttf`);
   execSync(`${svg2TTF} --ts=1 ${FONT}.svg ${FONT}.ttf`);
 
   // Convert TTF to WOFF
-  const ttf2WOFF = path.normalize(`${__dirname}/../node_modules/.bin/ttf2woff`);
+  const ttf2WOFF = normalize(`${__dirname}/../node_modules/.bin/ttf2woff`);
   execSync(`${ttf2WOFF} ${FONT}.ttf ${FONT}.woff`);
 
   const content = readFileSync(`${FONT}.svg`, 'utf-8');
