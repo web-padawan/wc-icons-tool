@@ -1,6 +1,6 @@
 {
   "name": "wc-icons-tool",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "main": "./bin/wc-icons-tool",
   "bin": {
     "wc-icons-tool": "./bin/wc-icons-tool"
@@ -9,12 +9,19 @@
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/vaadin/icons-tool.git"
+    "url": "https://github.com/web-padawan/icons-tool.git"
   },
   "author": "Vaadin Ltd",
   "description": "Tool for building Vaadin icons",
+  "files": [
+    "bin",
+    "tasks"
+  ],
   "dependencies": {
     "cheerio": "^1.0.0",
-    "glob": "^13.0.0"
+    "glob": "^13.0.0",
+    "svgicons2svgfont": "^14.0.2",
+    "svg2ttf": "6.0.3",
+    "ttf2woff": "3.0.0"
   }
 }
