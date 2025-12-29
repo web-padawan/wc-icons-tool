@@ -1,0 +1,16 @@
+#!/usr/bin/env node
+import { generateIcons } from '../tasks/icons.js';
+
+async function main() {
+  await generateIcons();
+}
+
+main()
+  .then(() => {
+    console.warn('done');
+    process.exit(0);
+  })
+  .catch((e) => {
+    console.error(e);
+    process.exit(1);
+  });
