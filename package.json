@@ -15,11 +15,16 @@
   "description": "Tool for building Vaadin icons",
   "files": [
     "bin",
+    "patches",
     "tasks"
   ],
+  "scripts": {
+    "postinstall": "patch-package"
+  },
   "dependencies": {
     "cheerio": "^1.0.0",
     "glob": "^13.0.0",
+    "patch-package": "^8.0.1",
     "svgicons2svgfont": "^14.0.2",
     "svg2ttf": "6.0.3",
     "ttf2woff": "3.0.0"
