@@ -1,5 +1,5 @@
 {
-  "name": "wc-icons-tool",
+  "name": "@web-padawan/wc-icons-tool",
   "version": "0.1.0",
   "main": "./bin/wc-icons-tool",
   "bin": {
@@ -9,7 +9,7 @@
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/web-padawan/icons-tool.git"
+    "url": "https://github.com/web-padawan/wc-icons-tool.git"
   },
   "author": "Vaadin Ltd",
   "description": "Tool for building Vaadin icons",
