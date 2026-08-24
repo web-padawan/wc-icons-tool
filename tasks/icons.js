@@ -11,6 +11,32 @@ function createCopyright() {
  */`;
 }
 
+/**
+ * Icons listed in `vaadin-font-icons.json` that have no SVG file of their own
+ * are aliases: they share a codepoint with an existing icon, typically a
+ * renamed one whose old name is kept as deprecated. Such icons are added to
+ * the iconset as a `<use>` reference to the icon they share the codepoint with.
+ */
+function createAliases(names) {
+  const json = `${process.cwd()}/packages/icons/assets/vaadin-font-icons.json`;
+  const icons = JSON.parse(readFileSync(json, 'utf-8'));
+
+  return icons
+    .filter((icon) => !names.has(icon.name))
+    .map((alias) => {
+      const source = icons.find(
+        (icon) => icon.code === alias.code && names.has(icon.name)
+      );
+      if (!source) {
+        throw new Error(
+          `No SVG file found for icon "${alias.name}" (code ${alias.code}).`
+        );
+      }
+      return `<g id="vaadin:${alias.name}"><use href="#vaadin:${source.name}"></use></g>`;
+    })
+    .sort();
+}
+
 export function generateIcons() {
   const files = globSync(`${process.cwd()}/packages/icons/assets/svg/*.svg`).sort();
 
@@ -28,12 +54,17 @@ export function generateIcons() {
     })
     .join('\n');
 
+  const names = new Set(files.map((file) => basename(file, '.svg')));
+  const aliases = createAliases(names).join('\n');
+
+  const groups = [contents, aliases].filter(Boolean).join('\n');
+
   const iconset = `${createCopyright()}
 import { Iconset } from '@vaadin/icon/vaadin-iconset.js';
 
 const template = document.createElement('template');
 
-template.innerHTML = \`<svg><defs>\n${contents}\n</defs></svg>\`;
+template.innerHTML = \`<svg><defs>\n${groups}\n</defs></svg>\`;
 
 Iconset.register('vaadin', 16, template);\n`;
 
